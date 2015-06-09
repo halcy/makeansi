@@ -44,12 +44,13 @@ $SIG{'INT'} = sub {print resetformat(); print "\e[?25h"; exit(0);};
 # Read an image
 my $filename = $ARGV[0] or die("Missing file name parameter");
 my $maxiters = defined($ARGV[1]) ? $ARGV[1] : 0;
-my $scale = defined($ARGV[2]) ? $ARGV[2] : 1.0;
-my $filter = defined($ARGV[3]) ? $ARGV[3] : "Bessel";
+my $manual_coalesce = defined($ARGV[2]) ? $ARGV[2] : 0;
+my $scale = defined($ARGV[3]) ? $ARGV[3] : 1.0;
+my $filter = defined($ARGV[4]) ? $ARGV[4] : "Bessel";
 
 my $image = Image::Magick->new();
 $image->read($filename);
-$image->Coalesce() or die("Could not coalesce frames");
+$image = $image->Coalesce() or die("Could not coalesce frames");
 
 my $width = $image->Get('width') or die("Could not read image");
 my $height = $image->Get('height');
@@ -102,23 +103,23 @@ while($iters < $maxiters || $maxiters == 0) {
 
                 my $alpha_upper = ($pixels_upper[3] / 256.0) / 256.0;
                 $pixels_upper[0] *= $alpha_upper;
-                $pixels_upper[0] += $last_upper[0] * (1.0 - $alpha_upper);
+                $pixels_upper[0] += $last_upper[0] * (1.0 - $alpha_upper) * $manual_coalesce;
                 
                 $pixels_upper[1] *= $alpha_upper; 
-                $pixels_upper[1] += $last_upper[1] * (1.0 - $alpha_upper);
+                $pixels_upper[1] += $last_upper[1] * (1.0 - $alpha_upper) * $manual_coalesce;
 
                 $pixels_upper[2] *= $alpha_upper; 
-                $pixels_upper[2] += $last_upper[2] * (1.0 - $alpha_upper);
+                $pixels_upper[2] += $last_upper[2] * (1.0 - $alpha_upper) * $manual_coalesce;
 
                 my $alpha_lower = ($pixels_lower[3] / 256.0) / 256.0;
                 $pixels_lower[0] *= $alpha_lower; 
-                $pixels_lower[0] += ($last_lower[0] * (1.0 - $alpha_lower));
+                $pixels_lower[0] += ($last_lower[0] * (1.0 - $alpha_lower)) * $manual_coalesce;
 
                 $pixels_lower[1] *= $alpha_lower; 
-                $pixels_lower[1] += ($last_lower[1] * (1.0 - $alpha_lower));
+                $pixels_lower[1] += ($last_lower[1] * (1.0 - $alpha_lower)) * $manual_coalesce;
 
                 $pixels_lower[2] *= $alpha_lower; 
-                $pixels_lower[2] += ($last_lower[2] * (1.0 - $alpha_lower));
+                $pixels_lower[2] += ($last_lower[2] * (1.0 - $alpha_lower)) * $manual_coalesce;
                 
                 push @pixels, \@pixels_upper;
                 push @pixels, \@pixels_lower;
