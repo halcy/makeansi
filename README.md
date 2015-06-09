@@ -10,6 +10,13 @@ Usage:
 
    perl makeansi.pl some.png
 
+Results should look like so:
+
+![Ansi Marisa](http://aka-san.halcy.de/ansimari.png)
+
+You can put the results in a text file and then just
+cat it into the terminal for viewing, if you like.
+
 Recommended console font: Droid Sans Mono
 
 If you are a developer of a terminal emulator: Please
