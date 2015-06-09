@@ -2,9 +2,12 @@ makeansi.pl
 ===========
 
 Converts images to a sequence of ansi rgb colour code 
-escapes combined with unicode half block characters. If 
-you find any terminals that works on that are not 
-Konsole, let me know.
+escapes combined with unicode half block characters.
+
+For a list of terminals that actually support the true
+color ansi escape sequences, refer to this list:
+
+   https://gist.github.com/XVilka/8346728
 
 Usage:
 
