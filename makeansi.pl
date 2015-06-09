@@ -63,6 +63,7 @@ sub nextline() {
 my $filename = $ARGV[0] or die("Missing file name parameter");
 my $halfblocks = 1;
 my $scale = defined($ARGV[1]) ? $ARGV[1] : 1.0;
+my $filter = defined($ARGV[2]) ? $ARGV[2] : "Bessel";
 
 my $image = Image::Magick->new();
 $image->read($filename);
@@ -73,7 +74,7 @@ my $height = $image->Get('height');
 if($scale != 1.0) {
     $width = int($width * $scale);
     $height = int($height * $scale);
-    $image->Resize('width' => $width, 'height' => $height);
+    $image->Resize('width' => $width, 'height' => $height, 'filter' => $filter);
 }
 
 if(!$halfblocks) {
