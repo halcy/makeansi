@@ -13,14 +13,6 @@ sub resetformat() {
     return "\e[0m";
 }
 
-# Set fore- and background using RGB colour terminal escapes
-sub rgbcol($$$) {
-    my ($r, $g, $b) = @_;
-    my $setfg = "\e[38;2;" . $r . ";" . $g .";" . $b . "m";
-    my $setbg = "\e[48;2;" . $r . ";" . $g .";" . $b . "m";
-    return resetformat() . $setfg . $setbg;
-}
-
 # Set fore- and background differently, using RGB colour terminal escapes
 sub rgbcol2($$$$$$) {
     my ($rf, $gf, $bf, $rb, $gb, $bb) = @_;
@@ -34,33 +26,20 @@ sub underline() {
     return("\e[4m")
 }
 
-# Print a block with given colour
-sub printblock($$$) {
-    my ($r, $g, $b) = @_; 
-    print rgbcol(int($r), int($g), int($b)) . "█" . resetformat();
-}
-
 # Print two half-blocks with given colours
 sub printhalfblock($$$$$$) {
     my ($ur, $ug, $ub, $lr, $lg, $lb) = @_; 
     print rgbcol2(int($lr), int($lg), int($lb), int($ur), int($ug), int($ub));
-    print underline();
     print "▄";
-    print resetformat();
-}
-
-# Skip a block. Aka, print a space.
-sub skipblock() {
-    print " ";
 }
 
 # Go to next line
 sub nextline() {
-    print "\n";
+    print resetformat() . "\n" . underline();
 }
 
-# Emergency bailout cursor shower
-$SIG{'INT'} = sub {print "\e[?25h"; exit(0);};
+# Emergency bailout reset everything
+$SIG{'INT'} = sub {print resetformat(); print "\e[?25h"; exit(0);};
 
 # Read an image
 my $filename = $ARGV[0] or die("Missing file name parameter");
@@ -70,6 +49,7 @@ my $filter = defined($ARGV[3]) ? $ARGV[3] : "Bessel";
 
 my $image = Image::Magick->new();
 $image->read($filename);
+$image->Coalesce() or die("Could not coalesce frames");
 
 my $width = $image->Get('width') or die("Could not read image");
 my $height = $image->Get('height');
@@ -84,9 +64,16 @@ if($scale != 1.0) {
 print "\e[?25l";
 
 # Play
+print underline();
+
 my $iters = 0;
+my @last_pixels = [];
+my @pixels = ();
 while($iters < $maxiters || $maxiters == 0) {
     for(my $i = 0; $image->[$i]; $i++) {
+        @last_pixels = @pixels;
+        @pixels = ();
+
         my $linecount = 0;
         for(my $y = 0; $y < $height; $y+=2) {
             for(my $x = 0; $x < $width; $x++) {
@@ -105,17 +92,37 @@ while($iters < $maxiters || $maxiters == 0) {
                     'y'         => $y + 1,
                     'map'       =>'RGBA',
                 );
-            
+
+		my @last_upper = (0, 0, 0, 0);
+		my @last_lower = (0, 0, 0, 0);
+                if($i != 0) {
+                    @last_upper = @{shift @last_pixels};
+                    @last_lower = @{shift @last_pixels};
+                }
+
                 my $alpha_upper = ($pixels_upper[3] / 256.0) / 256.0;
                 $pixels_upper[0] *= $alpha_upper;
-                $pixels_upper[1] *= $alpha_upper;
-                $pixels_upper[2] *= $alpha_upper;
-            
-                my $alpha_lower = ($pixels_lower[3] / 256.0) / 256.0;
-                $pixels_lower[0] *= $alpha_lower;
-                $pixels_lower[1] *= $alpha_lower;
-                $pixels_lower[2] *= $alpha_lower;
+                $pixels_upper[0] += $last_upper[0] * (1.0 - $alpha_upper);
                 
+                $pixels_upper[1] *= $alpha_upper; 
+                $pixels_upper[1] += $last_upper[1] * (1.0 - $alpha_upper);
+
+                $pixels_upper[2] *= $alpha_upper; 
+                $pixels_upper[2] += $last_upper[2] * (1.0 - $alpha_upper);
+
+                my $alpha_lower = ($pixels_lower[3] / 256.0) / 256.0;
+                $pixels_lower[0] *= $alpha_lower; 
+                $pixels_lower[0] += ($last_lower[0] * (1.0 - $alpha_lower));
+
+                $pixels_lower[1] *= $alpha_lower; 
+                $pixels_lower[1] += ($last_lower[1] * (1.0 - $alpha_lower));
+
+                $pixels_lower[2] *= $alpha_lower; 
+                $pixels_lower[2] += ($last_lower[2] * (1.0 - $alpha_lower));
+                
+                push @pixels, \@pixels_upper;
+                push @pixels, \@pixels_lower;
+
                 printhalfblock(
                     $pixels_upper[0] / 256, 
                     $pixels_upper[1] / 256, 
@@ -132,6 +139,8 @@ while($iters < $maxiters || $maxiters == 0) {
     }
     $iters++;
 }
+
+print resetformat();
 
 # Cursor back on
 print "\e[?25h";
