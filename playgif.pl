@@ -5,6 +5,7 @@ use warnings;
 use strict;
 
 use Image::Magick;
+use Getopt::Long;
 
 # Remove all formatting
 sub resetformat { "\e[0m" }
@@ -28,7 +29,9 @@ sub printhalfblock {
 }
 
 # Go to next line
-sub nextline { resetformat . "\n" . underline }
+sub nextline { 
+    resetformat . "\n" . underline 
+}
 
 binmode STDOUT, ":utf8";
 
@@ -38,24 +41,44 @@ $SIG{'INT'} = sub {
     exit 0;
 };
 
+# Parse options
+my $maxiters = 0;
+my $manual_coalesce = 0;
+my $scale =  1.0;
+my $gamma = 1.0;
+my $rmult = 1.0;
+my $gmult = 1.0;
+my $bmult = 1.0;
+my $scalegamma = 2.2;
+my $scalefilter = "Bessel";
+
+GetOptions(
+    "maxiters=i" => \$maxiters,
+    "manualcoalesce" => \$manual_coalesce,
+    "scale=f" => \$scale,
+    "gamma=f" => \$gamma,
+    "rmult=f" => \$rmult,
+    "gmult=f" => \$gmult,
+    "bmult=f" => \$bmult,
+    "scalegamma=f" => \$scalegamma,
+    "scalefilter=s" => \$scalefilter,
+);
+
 # Read an image
-my $filename = $ARGV[0] or die( "Missing file name parameter" );
-my $maxiters        = defined( $ARGV[1] ) ? $ARGV[1] : 0;
-my $manual_coalesce = defined( $ARGV[2] ) ? $ARGV[2] : 0;
-my $scale           = defined( $ARGV[3] ) ? $ARGV[3] : 1.0;
-my $filter          = defined( $ARGV[4] ) ? $ARGV[4] : "Bessel";
+my $filename = $ARGV[0];
+my $image = Image::Magick->new();
+$image->read($filename);
+$image = $image->Coalesce() or die("Could not coalesce frames");
 
-my $image = Image::Magick->new;
-$image->read( $filename );
-$image = $image->Coalesce or die "Could not coalesce frames";
+my $width = $image->Get('width') or die("Could not read image");
+my $height = $image->Get('height');
 
-my $width = $image->Get( 'width' ) or die "Could not read image";
-my $height = $image->Get( 'height' );
-
-if ( $scale != 1.0 ) {
-    $width  = int( $width * $scale );
-    $height = int( $height * $scale );
-    $image->Resize( 'width' => $width, 'height' => $height, 'filter' => $filter );
+if($scale != 1.0) {
+    $width = int($width * $scale);
+    $height = int($height * $scale);
+    $image->Gamma(1.0 / $scalegamma);
+    $image->Resize('width' => $width, 'height' => $height, 'filter' => $scalefilter);
+    $image->Gamma($scalegamma);
 }
 
 # Cursor off, if possible
@@ -118,14 +141,33 @@ while ( $iters < $maxiters || $maxiters == 0 ) {
                 $pixels_lower[2] *= $alpha_lower;
                 $pixels_lower[2] += ( $last_lower[2] * ( 1.0 - $alpha_lower ) ) * $manual_coalesce;
 
+                $pixels_lower[2] *= $alpha_lower; 
+                $pixels_lower[2] += ($last_lower[2] * (1.0 - $alpha_lower)) * $manual_coalesce;
+                
+                $pixels_upper[0] *= $rmult;
+                $pixels_upper[1] *= $gmult;
+                $pixels_upper[2] *= $bmult;
+                
+                $pixels_lower[0] *= $rmult;
+                $pixels_lower[1] *= $gmult;
+                $pixels_lower[2] *= $bmult;
+
+                $pixels_upper[0] = $pixels_upper[0] ** $gamma;
+                $pixels_upper[1] = $pixels_upper[1] ** $gamma;
+                $pixels_upper[2] = $pixels_upper[2] ** $gamma; 
+
+                $pixels_lower[0] = $pixels_lower[0] ** $gamma;
+                $pixels_lower[1] = $pixels_lower[1] ** $gamma;
+                $pixels_lower[2] = $pixels_lower[2] ** $gamma;
+		
                 push @pixels, \@pixels_upper;
                 push @pixels, \@pixels_lower;
 
-                printhalfblock map { $_ / 256 }    #
+                printhalfblock map { $_ / 256 }
                   $pixels_upper[0], $pixels_upper[1], $pixels_upper[2],
                   $pixels_lower[0], $pixels_lower[1], $pixels_lower[2];
             }
-            nextline;
+            print nextline;
             $linecount++;
         }
         print "\e[${linecount}A" if defined $image->[ $i + 1 ] or ( $iters + 1 ) != $maxiters;
