@@ -136,7 +136,9 @@ while($iters < $maxiters || $maxiters == 0) {
             nextline();
             $linecount++;
         }
-        print "\e[" . $linecount . "A";
+	if(defined($image->[$i+1]) || ($iters + 1) != $maxiters) {
+            print "\e[" . $linecount . "A";
+        }
     }
     $iters++;
 }
