@@ -6,6 +6,7 @@ use strict;
 
 use Image::Magick;
 use Getopt::Long;
+use Time::HiRes;
 
 # Remove all formatting
 sub resetformat { "\e[0m" }
@@ -75,6 +76,7 @@ my $bmult = 1.0;
 my $scale_gamma = 2.2;
 my $scale_filter = "Bessel";
 my $frame = -1;
+my $no_delay = 0;
 
 GetOptions(
     "loop=i" => \$loops,
@@ -86,7 +88,8 @@ GetOptions(
     "bmult=f" => \$bmult,
     "scalegamma=f" => \$scale_gamma,
     "scalefilter=s" => \$scale_filter,
-    "frame=i" => \$frame
+    "frame=i" => \$frame,
+    "nodelay" => \$no_delay,
 );
 my @colmult = ($rmult, $gmult, $bmult);
 
@@ -117,11 +120,12 @@ if((scalar @{$image}) <= 1) {
     $loops = 1;
 }
 
-# Convert image to ansi+unicode
+# Convert image to ansi+unicode and get frame delays
 my @last_pixels = [];
 my @pixels = ();
 my @ansi_frames = ();
 my @line_counts = ();
+my @frame_delays = ();
 for(my $i = 0; $image->[$i]; $i++) {
     my $frame_ansi = "";
     
@@ -187,6 +191,7 @@ for(my $i = 0; $image->[$i]; $i++) {
     }
     push @ansi_frames, $frame_ansi;
     push @line_counts, $line_count;
+    push @frame_delays, (($image->[$i]->Get("delay") * 10.0) / 1000.0);
 }
 
 # Cursor off, if possible
@@ -196,6 +201,7 @@ print hidecursor;
 print underline;
 
 my $iters = 0;
+my $frame_time = Time::HiRes::time();
 while($iters < $loops || $loops == 0) {
     for(my $i = 0; $i < scalar @ansi_frames; $i++) {
         if($frame != -1 && $frame != $i) {
@@ -214,6 +220,16 @@ while($iters < $loops || $loops == 0) {
         # Scroll back up for next frame, if there is one
         if(($i + 1) < scalar @ansi_frames || ($iters + 1) != $loops) {
             print backnlines($line_counts[$i])
+        }
+        
+        # Wait for frame delay to pass
+        if(!$no_delay) {
+            my $time = Time::HiRes::time();
+            while($time - $frame_time < $frame_delays[$i]) {
+                Time::HiRes::sleep((1.0 / 100.0) / 2.0);
+                $time = Time::HiRes::time();
+            }
+            $frame_time = $time;
         }
     }
     

@@ -21,7 +21,8 @@ Results should look like so:
 
 You can put the results in a text file and then just
 cat it into the terminal for viewing, if you like. Yes,
-even the animations. Frame delay is ignored right now.
+even the animations. If you do that with an animation,
+the frame delay is ignored, obviously.
 
 Parameters:
 
@@ -44,6 +45,9 @@ Parameters:
                  
    * -loop (int): For animations, loop this many times.
       Default: 0 (loop forever).
+
+   * -nodelay: Turns off animation delay, frames are
+      just written as fast as possible. Default: Off.
 
    * -frame (int): For animations, don't loop or 
       animate but instead just display frame n. 
