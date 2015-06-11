@@ -88,6 +88,8 @@ $SIG{'INT'} = sub {
 binmode STDOUT, ":utf8";
 
 # Parse options
+my $pipegif = 0;
+my $pipepng = 0;
 my $loops = 0;
 my $manual_coalesce = 0;
 my $scale = 1.0;
@@ -102,6 +104,8 @@ my $no_delay = 0;
 my $invert = 0;
 
 GetOptions(
+    "pipegif" => \$pipegif,
+    "pipepng" => \$pipepng,
     "loop=i" => \$loops,
     "manualcoalesce" => \$manual_coalesce,
     "scale=f" => \$scale,
@@ -119,6 +123,17 @@ my @colmult = ($rmult, $gmult, $bmult);
 
 # Read an image
 my $filename = $ARGV[0];
+
+if($pipegif) {
+    binmode STDIN;
+    $filename = "gif:-";
+}
+
+if($pipepng) {
+    binmode STDIN;
+    $filename = "png:-";
+}
+
 if(!defined($filename)) {
     die("Missing file name parameter");
 }

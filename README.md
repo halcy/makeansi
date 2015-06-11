@@ -27,6 +27,8 @@ locally with a small image, it might not actually
 look very animated at all.
 
 Parameters:
+   * -pipegif, -pipepng: Use an image supplied via
+      STDIN as input. Default: Off.
 
    * -scale (float): Scale image to this fraction of 
       its size. Default: 1.0.
