@@ -233,6 +233,10 @@ for(my $i = 0; $image->[$i]; $i++) {
                     $pixels_lower[$j] = 255.0 - $pixels_lower[$j];
                 }
                 
+                if($y + 1 >= $height) {
+                    @pixels_lower = (0, 0, 0, 0);
+                }
+                
             }
     
             push @pixels, \@pixels_upper;
