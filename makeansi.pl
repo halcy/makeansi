@@ -122,7 +122,7 @@ my $iters       = 0;
 my @last_pixels = [];
 my @pixels      = ();
 while($iters < $maxiters || $maxiters == 0) {
-    for(my $i = 0 ; $image->[$i] ; $i++) {
+    for(my $i = 0; $image->[$i]; $i++) {
         if( $frame != -1 && $frame != $i) {
             next;
         }
@@ -131,8 +131,8 @@ while($iters < $maxiters || $maxiters == 0) {
         @pixels      = ();
 
         my $linecount = 0;
-        for ( my $y = 0 ; $y < $height ; $y += 2 ) {
-            for my $x ( 0 .. $width - 1 ) {
+        for(my $y = 0; $y < $height; $y += 2) {
+            for(my $x = 0; $x < $width; $x++) {
                 my @pixels_upper = $image->[$i]->GetPixels(
                     'width'  => 1,
                     'height' => 1,
@@ -141,14 +141,17 @@ while($iters < $maxiters || $maxiters == 0) {
                     'map'    => 'RGBA',
                 );
 
-                my @pixels_lower = $image->[$i]->GetPixels(
-                    'width'  => 1,
-                    'height' => 1,
-                    'x'      => $x,
-                    'y'      => $y + 1,
-                    'map'    => 'RGBA',
-                );
-
+                my @pixels_lower = (0, 0, 0, 0);
+                if($y + 1 < $height) {
+                    @pixels_lower = $image->[$i]->GetPixels(
+                        'width'  => 1,
+                        'height' => 1,
+                        'x'      => $x,
+                        'y'      => $y + 1,
+                        'map'    => 'RGBA',
+                    );
+                }
+                
                 my @last_upper = ( 0, 0, 0, 0 );
                 my @last_lower = ( 0, 0, 0, 0 );
                 if ( $i != 0 ) {
