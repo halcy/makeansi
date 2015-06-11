@@ -51,9 +51,10 @@ my $gmult = 1.0;
 my $bmult = 1.0;
 my $scalegamma = 2.2;
 my $scalefilter = "Bessel";
+my $frame = -1;
 
 GetOptions(
-    "maxiters=i" => \$maxiters,
+    "loop=i" => \$maxiters,
     "manualcoalesce" => \$manual_coalesce,
     "scale=f" => \$scale,
     "gamma=f" => \$gamma,
@@ -62,6 +63,7 @@ GetOptions(
     "bmult=f" => \$bmult,
     "scalegamma=f" => \$scalegamma,
     "scalefilter=s" => \$scalefilter,
+    "frame=i" => \$frame
 );
 
 # Read an image
@@ -81,6 +83,12 @@ if($scale != 1.0) {
     $image->Gamma($scalegamma);
 }
 
+# Single-frame images are only displayed once, no loop
+if((scalar @{$image}) <= 1) {
+    $frame = 0;
+    $maxiters = 1;
+}
+
 # Cursor off, if possible
 print "\e[?25l";
 
@@ -90,8 +98,12 @@ print underline();
 my $iters       = 0;
 my @last_pixels = [];
 my @pixels      = ();
-while ( $iters < $maxiters || $maxiters == 0 ) {
-    for ( my $i = 0 ; $image->[$i] ; $i++ ) {
+while($iters < $maxiters || $maxiters == 0) {
+    for(my $i = 0 ; $image->[$i] ; $i++) {
+        if( $frame != -1 && $frame != $i) {
+            next;
+        }
+        
         @last_pixels = @pixels;
         @pixels      = ();
 
