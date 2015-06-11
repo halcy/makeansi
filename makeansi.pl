@@ -121,6 +121,6 @@ else {
               $pixels_upper[0], $pixels_upper[1], $pixels_upper[2],
               $pixels_lower[0], $pixels_lower[1], $pixels_lower[2];
         }
-        nextline;
+        print nextline;
     }
 }
