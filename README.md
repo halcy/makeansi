@@ -25,31 +25,31 @@ even the animations. Frame delay is ignored right now.
 
 Parameters:
 
-   * -scale <float>: Scale image to this fraction of 
+   * -scale (float): Scale image to this fraction of 
       its size. Default: 1.0.
  
-   * -scalefilter <string>: Scale image with this 
+   * -scalefilter (string): Scale image with this 
       filter. For a list of filters, see imagemagick 
       documentation. Default: Bessel.
 
-   * -scalegamma <float>: Apply gamma correction with 
+   * -scalegamma (float): Apply gamma correction with 
       this value while scaling. Default: 2.2.
 
-   * -rmult <float>, -gmult <float>, -bmult <float>: 
+   * -rmult (float), -gmult (float), -bmult (float): 
       Scale r, g, b components by this fraction before 
       display. Default: 1.0.
    
-   * -gamma <float>: Apply gamma correction with this 
+   * -gamma (float): Apply gamma correction with this 
       value before display. Default: 1.0 (no-op).
                  
-   * -loop <int>: For animations, loop this many times.
+   * -loop (int): For animations, loop this many times.
       Default: 0 (loop forever).
 
-   * -frame <int>: For animations, don't loop or 
+   * -frame (int): For animations, don't loop or 
       animate but instead just display frame n. 
       Default: Off.
 
-   * -manualcoalesce <0|1> - Do not rely on imagemagick 
+   * -manualcoalesce - Do not rely on imagemagick 
       to coalesce the gif animation correctly, manually
       overlay images according to alpha information.
       This should hardly ever be neccesary. Default:
