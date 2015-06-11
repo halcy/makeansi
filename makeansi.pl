@@ -3,29 +3,43 @@
 use utf8;
 use warnings;
 use strict;
+use 5.010;
 
 use Image::Magick;
 use Getopt::Long;
 use Time::HiRes;
 
 # Remove all formatting
-sub resetformat { "\e[0m" }
+sub resetformat { 
+    invalidatecolorcache();
+    return "\e[0m"; 
+}
 
 # Set fore- and background differently, using RGB colour terminal escapes
 sub rgbcol2 {
     my ($rf, $gf, $bf, $rb, $gb, $bb) = @_;
     my $setfg = "\e[38;2;$rf;$gf;${bf}m";
     my $setbg = "\e[48;2;$rb;$gb;${bb}m";
-    return resetformat . $setfg . $setbg;
+    return $setfg . $setbg;
 }
 
 # Turn underlining on
 sub underline { "\e[4m" }
 
 # Two half-blocks with given colours (in a single character)
+my @color_cache = ();
 sub halfblock {
     my ($ur, $ug, $ub, $lr, $lg, $lb) = @_;
-    return rgbcol2(map { int $_ } $lr, $lg, $lb, $ur, $ug, $ub) . "▄";
+    my @colors = ($lr, $lg, $lb, $ur, $ug, $ub);
+    if(@colors ~~ @color_cache) {
+        return "▄";
+    }
+    else {
+        return rgbcol2(map { int $_ } @colors) . "▄";
+    }
+}
+sub invalidatecolorcache {
+    @color_cache = ();
 }
 
 # Go to next line
