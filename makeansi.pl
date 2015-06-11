@@ -145,6 +145,12 @@ if($scale != 1.0) {
 if((scalar @{$image}) <= 1) {
     $frame = 0;
     $loops = 1;
+    $stop_animating = 1;
+}
+
+if($frame >= 0) {
+    $loops = 1;
+    $stop_animating = 1;
 }
 
 # Convert image to ansi+unicode and get frame delays
