@@ -63,6 +63,14 @@ sub backnlines {
     return "\e[${line_count}A";
 }
 
+# Colour clamp
+sub clampcolor {
+    my $color = shift();
+    $color = ($color, 255.0)[$color > 255.0];
+    $color = ($color, 0.0)[$color < 0.0];
+    return $color;
+}
+
 # Emergency bailout. On first try, just stop animation. Second, quit right away.
 my $numints = 0;
 my $stop_animating = 0;
@@ -91,6 +99,7 @@ my $scale_gamma = 2.2;
 my $scale_filter = "Bessel";
 my $frame = -1;
 my $no_delay = 0;
+my $invert = 0;
 
 GetOptions(
     "loop=i" => \$loops,
@@ -104,6 +113,7 @@ GetOptions(
     "scalefilter=s" => \$scale_filter,
     "frame=i" => \$frame,
     "nodelay" => \$no_delay,
+    "invert" => \$invert,
 );
 my @colmult = ($rmult, $gmult, $bmult);
 
@@ -182,6 +192,8 @@ for(my $i = 0; $image->[$i]; $i++) {
                 $pixels_upper[$j] += $last_upper[$j];
                 $pixels_upper[$j] *= $colmult[$j];
                 $pixels_upper[$j] = $pixels_upper[$j] ** $gamma;
+                $pixels_upper[$j] = $pixels_upper[$j] / 256.0;
+                $pixels_upper[$j] = clampcolor($pixels_upper[$j]);
                 
                 my $alpha_lower = ($pixels_lower[3] / 256.0) / 256.0;
                 $pixels_lower[$j] *= $alpha_lower;
@@ -189,14 +201,27 @@ for(my $i = 0; $image->[$i]; $i++) {
                 $pixels_lower[$j] += $last_lower[$j];
                 $pixels_lower[$j] *= $rmult;
                 $pixels_lower[$j] = $pixels_lower[$j] ** $gamma;
+                $pixels_lower[$j] = $pixels_lower[$j] / 256.0;
+                $pixels_lower[$j] = clampcolor($pixels_lower[$j]);
+                
+                if($invert) {
+                    $pixels_upper[$j] = 255.0 - $pixels_upper[$j];
+                    $pixels_lower[$j] = 255.0 - $pixels_lower[$j];
+                }
+                
             }
     
             push @pixels, \@pixels_upper;
             push @pixels, \@pixels_lower;
 
-            my @colours = map { $_ / 256 }
-                $pixels_upper[0], $pixels_upper[1], $pixels_upper[2],
-                $pixels_lower[0], $pixels_lower[1], $pixels_lower[2];
+            my @colours = (
+                $pixels_upper[0], 
+                $pixels_upper[1], 
+                $pixels_upper[2],
+                $pixels_lower[0], 
+                $pixels_lower[1], 
+                $pixels_lower[2],
+            );
                 
             $frame_ansi .= halfblock(@colours);
         }

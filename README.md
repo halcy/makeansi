@@ -42,6 +42,8 @@ Parameters:
    
    * -gamma (float): Apply gamma correction with this 
       value before display. Default: 1.0 (no-op).
+
+   * -invert: Invert colours. Default: Off.
                  
    * -loop (int): For animations, loop this many times.
       Default: 0 (loop forever).
