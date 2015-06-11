@@ -22,10 +22,9 @@ sub rgbcol2 {
 sub underline { "\e[4m" }
 
 # Print two half-blocks with given colours
-sub printhalfblock {
+sub halfblock {
     my ( $ur, $ug, $ub, $lr, $lg, $lb ) = @_;
-    print rgbcol2( map { int $_ } $lr, $lg, $lb, $ur, $ug, $ub ) . "▄";
-    return;
+    return rgbcol2( map { int $_ } $lr, $lg, $lb, $ur, $ug, $ub ) . "▄";
 }
 
 # Go to next line
@@ -33,13 +32,37 @@ sub nextline {
     resetformat . "\n" . underline 
 }
 
-binmode STDOUT, ":utf8";
+# Hide the terminal cursor
+sub hidecursor {
+    return "\e[?25l";
+}
 
-# Emergency bailout reset everything
+# Show the terminal cursor
+sub showcursor {
+    return "\e[?25h";
+}
+
+# Go n lines up
+sub backnlines {
+    my $linecount = shift();
+    return "\e[${linecount}A";
+}
+
+# Emergency bailout. On first try, just stop animation. Second, quit right away.
+my $numints = 0;
+my $stopanimating = 0;
 $SIG{'INT'} = sub {
-    print resetformat . "\e[?25h";
-    exit 0;
+    $numints++;
+    if($numints == 1) {
+        $stopanimating = 1;
+    }
+    else {
+        print resetformat . showcursor;
+        exit 0;
+    }
 };
+
+binmode STDOUT, ":utf8";
 
 # Parse options
 my $maxiters = 0;
@@ -90,10 +113,10 @@ if((scalar @{$image}) <= 1) {
 }
 
 # Cursor off, if possible
-print "\e[?25l";
+print hidecursor;
 
 # Play
-print underline();
+print underline;
 
 my $iters       = 0;
 my @last_pixels = [];
@@ -175,14 +198,22 @@ while($iters < $maxiters || $maxiters == 0) {
                 push @pixels, \@pixels_upper;
                 push @pixels, \@pixels_lower;
 
-                printhalfblock map { $_ / 256 }
+                my @colours = map { $_ / 256 }
                   $pixels_upper[0], $pixels_upper[1], $pixels_upper[2],
                   $pixels_lower[0], $pixels_lower[1], $pixels_lower[2];
+                  
+                print halfblock(@colours);
             }
             print nextline;
             $linecount++;
         }
-        print "\e[${linecount}A" if defined $image->[ $i + 1 ] or ( $iters + 1 ) != $maxiters;
+        
+        if($stopanimating) {
+            print resetformat . showcursor;
+            exit(0);
+        }
+        
+        print backnlines($linecount) if defined $image->[ $i + 1 ] or ( $iters + 1 ) != $maxiters;
     }
     $iters++;
 }
@@ -190,5 +221,5 @@ while($iters < $maxiters || $maxiters == 0) {
 print resetformat;
 
 # Cursor back on
-print "\e[?25h";
+print showcursor;
 
