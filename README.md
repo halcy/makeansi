@@ -12,6 +12,7 @@ true color ansi escape sequences, refer to
 Usage:
 
    > perl makeansi.pl some.png
+
    > perl makeansi.pl some.gif 
 
 Results should look like so:
