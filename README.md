@@ -1,9 +1,10 @@
 makeansi.pl
 ===========
 
-Converts images to a sequence of ansi rgb colour code 
-escapes combined with unicode half block characters,
-or alternately plays back a gif file in the terminal.
+Displays images in the terminal by converting them to 
+a sequence of ansi rgb colour code escapes combined 
+with unicode half block characters, or alternately 
+plays back a gif file right in the terminal.
 
 For a list of terminals that actually support the 
 true color ansi escape sequences, refer to 
