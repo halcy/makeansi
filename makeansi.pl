@@ -119,6 +119,9 @@ my @colmult = ($rmult, $gmult, $bmult);
 
 # Read an image
 my $filename = $ARGV[0];
+if(!defined($filename)) {
+    die("Missing file name parameter");
+}
 my $image = Image::Magick->new();
 $image->read($filename);
 $image = $image->Coalesce() or die("Could not coalesce frames");
