@@ -22,7 +22,9 @@ Results should look like so:
 You can put the results in a text file and then just
 cat it into the terminal for viewing, if you like. Yes,
 even the animations. If you do that with an animation,
-the frame delay is ignored, obviously.
+the frame delay is ignored, obviously, and if done
+locally with a small image, it might not actually
+look very animated at all.
 
 Parameters:
 
