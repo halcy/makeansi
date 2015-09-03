@@ -102,6 +102,7 @@ my $scale_filter = "Bessel";
 my $frame = -1;
 my $no_delay = 0;
 my $invert = 0;
+my $doreset = 0;
 
 GetOptions(
     "pipegif" => \$pipegif,
@@ -118,6 +119,7 @@ GetOptions(
     "frame=i" => \$frame,
     "nodelay" => \$no_delay,
     "invert" => \$invert,
+    "doreset" => \$doreset,
 );
 my @colmult = ($rmult, $gmult, $bmult);
 
@@ -280,6 +282,9 @@ while($iters < $loops || $loops == 0) {
         
         # Bailout code
         if($stop_animating) {
+            if($doreset) {
+                 print backnlines($line_counts[$i])
+            }
             print resetformat . showcursor;
             exit(0);
         }
