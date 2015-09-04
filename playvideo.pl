@@ -1,3 +1,10 @@
+##
+# Plays videos with softsubs maybe sometimes.
+# Call like perl playvideo.pl filename columns subtitleheight
+#
+# The scary thing is if you tried to you could probably
+# do this right and it would work fairly well.
+##
 use Time::HiRes;
 
 my $videofile = $ARGV[0];
